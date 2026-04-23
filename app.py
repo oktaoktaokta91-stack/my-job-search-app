@@ -1,69 +1,58 @@
+import streamlit as st
 import pandas as pd
 from jobspy import scrape_jobs
-import datetime
-import os
-import sys
+from datetime import datetime
 
-# Setup terminal
-pd.set_option('display.max_rows', None)
-pd.set_option('display.max_colwidth', None)
-pd.set_option('display.expand_frame_repr', False)
+# Page configuration
+st.set_page_config(page_title="Job Search Pro", layout="wide")
 
-def run_search():
-    print("====================================================")
-    print("            PROFESSIONAL JOB SEARCH TOOL")
-    print("====================================================\n")
+st.title("🚀 Professional Job Search Tool")
+st.markdown("Search LinkedIn, Indeed, and Google in one click.")
 
-    # Inputs
-    print("--- STEP 1: KEYWORDS ---")
-    keywords = input("Example: \"CyberArk\" OR \"IAM\"\nYour keywords: ")
+# --- SIDEBAR INPUTS (The UI) ---
+with st.sidebar:
+    st.header("Search Filters")
+    keywords = st.text_input("Keywords", value='"CyberArk" OR "IAM"')
+    city = st.text_input("City (Optional)", placeholder="e.g. Riyadh")
+    country = st.text_input("Country (Mandatory)", value="saudi arabia")
+    companies = st.text_input("Company Filter (Optional)", placeholder="e.g. Deloitte OR Google")
+    results_count = st.slider("Results wanted", 10, 100, 50)
     
-    print("\n--- STEP 2: CITY/LOCATION ---")
-    location = input("Example: Riyadh (or leave blank for whole country)\nYour location: ")
-    
-    print("\n--- STEP 3: COUNTRY (MANDATORY for Indeed) ---")
-    print("Must match list: saudi arabia, india, malaysia, united arab emirates, etc.")
-    country_input = input("Your country: ").strip().lower()
+    search_button = st.button("Search Jobs", type="primary")
 
-    print("\n--- STEP 4: COMPANY (OPTIONAL) ---")
-    company_input = input("Example: Deloitte OR Google\nYour company choice: ").strip()
-
-    print(f"\n[INFO] Searching LinkedIn, Indeed, and Google... Please wait.\n")
-
-    try:
-        # Fixed: location uses the city, country_indeed uses the full country string
-        jobs = scrape_jobs(
-            site_name=["linkedin", "indeed", "google"],
-            search_term=keywords,
-            location=location if location else country_input,
-            results_wanted=50,
-            country_indeed=country_input 
-        )
-
-        # Company Filter
-        if not jobs.empty and company_input:
-            companies = [c.strip() for c in company_input.upper().split('OR')]
-            jobs = jobs[jobs['company'].str.upper().str.contains('|'.join(companies), na=False)]
-
-        # Results
-        if not jobs.empty:
-            print(f"--- FOUND {len(jobs)} JOBS ---")
-            output = jobs[['site', 'title', 'company', 'location', 'date_posted']]
-            print(output.to_string(index=False))
+# --- SEARCH LOGIC ---
+if search_button:
+    with st.spinner("Searching job boards... please wait."):
+        try:
+            jobs = scrape_jobs(
+                site_name=["linkedin", "indeed", "google"],
+                search_term=keywords,
+                location=city if city else country,
+                country_indeed=country.lower().strip(),
+                results_wanted=results_count,
+            )
             
-            timestamp = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M')
-            filename = f"job_results_{timestamp}.csv"
-            jobs.to_csv(filename, index=False)
-            
-            print(f"\n[SUCCESS] Full list with links saved to: {filename}")
-        else:
-            print("\n[NOTICE] No jobs found. Try broader keywords.")
+            if not jobs.empty:
+                if companies.strip():
+                    target_list = [c.strip() for c in companies.upper().split('OR')]
+                    jobs = jobs[jobs['company'].str.upper().str.contains('|'.join(target_list), na=False)]
 
-    except Exception as e:
-        print(f"\n[ERROR] Something went wrong: {e}")
-
-    print("\n" + "="*52)
-    input("SEARCH COMPLETE. Press ENTER to close this window...")
-
-if __name__ == "__main__":
-    run_search()
+                if not jobs.empty:
+                    st.success(f"Found {len(jobs)} jobs!")
+                    # Interactive table
+                    display_df = jobs[['site', 'title', 'company', 'location', 'date_posted', 'job_url']]
+                    st.dataframe(
+                        display_df, 
+                        column_config={"job_url": st.column_config.LinkColumn("Apply Link")},
+                        use_container_width=True,
+                        hide_index=True
+                    )
+                    # Download button
+                    csv = jobs.to_csv(index=False).encode('utf-8')
+                    st.download_button("Download CSV", data=csv, file_name="jobs.csv", mime="text/csv")
+                else:
+                    st.warning("No jobs matched your company filter.")
+            else:
+                st.error("No jobs found. Try broader keywords.")
+        except Exception as e:
+            st.error(f"Error: {e}")
