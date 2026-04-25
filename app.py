@@ -19,7 +19,7 @@ st.header("🔍 Search Filters")
 col1, col2 = st.columns(2)
 with col1:
     # value="" keeps the box empty, placeholder shows the example
-    keywords = st.text_input("Keywords", value="", placeholder='e.g. "CyberArk" OR "IAM"')
+    keywords = st.text_input("Keywords", value="", placeholder='e.g. "CyberArk" OR "IAM" OR "PAM"')
 with col2:
     city = st.text_input("City (Optional)", value="", placeholder="e.g. Riyadh")
 
