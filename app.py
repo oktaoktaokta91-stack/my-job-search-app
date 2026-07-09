@@ -7,7 +7,7 @@ from datetime import datetime
 st.set_page_config(page_title="Job Search Pro", layout="wide")
 
 # --- HEADER SECTION ---
-st.title("🚀 Professional Job Search Tool")
+st.title("🚀 Job Search Tool")
 st.subheader("by Gauravkumar Patel")
 st.markdown("Search LinkedIn, Indeed, Google, Glassdoor, and ZipRecruiter in one click.")
 st.divider()
