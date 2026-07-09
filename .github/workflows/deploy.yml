@@ -1,0 +1,21 @@
+name: Global Sync Deployment
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  deploy-to-hf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - name: Push Code to Hugging Face Space
+        env:
+          # This tells GitHub to look specifically for your secret named HF_Token_for_git
+          HF_TOKEN: ${{ secrets.HF_Token_for_git }}
+        run: |
+          git push --force https://gauravk2:$HF_TOKEN@huggingface.co/spaces/gauravk2/the-best-job-search-app main
