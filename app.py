@@ -11,7 +11,7 @@ col_t1, col_t2 = st.columns([1, 8])
 with col_t1:
     st.title("🚀")
 with col_t2:
-    st.title("Professionl git new new Job Search Tool")
+    st.title("Professionl Job Search Tool")
     st.caption("Developed by Gauravkumar Patel | Version 2.1")
 
 st.divider()
