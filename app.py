@@ -12,7 +12,7 @@ with col_t1:
     st.title("🚀")
 with col_t2:
     st.title("Professionl Job Search Tool")
-    st.caption("Developed by Gauravkumar Patel | Version 2.1")
+    st.caption("Developed by auravkumar Patel | Version 2.1")
 
 st.divider()
 
